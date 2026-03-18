@@ -30,15 +30,15 @@ class BaseModel(models.Model):
         primary_key=True,
         default=uuid.uuid4,
         editable=False,
-        help_text="Unique identifier for this record. Auto-generated UUID."
+        help_text="Unique identifier for this record. Auto-generated UUID.",
     )
     created_at = models.DateTimeField(
         auto_now_add=True,
-        help_text="Timestamp when this record was created. Set by server, never editable."
+        help_text="Timestamp when this record was created. Set by server, never editable.",
     )
     updated_at = models.DateTimeField(
         auto_now=True,
-        help_text="Timestamp of last modification. Updated automatically on every save."
+        help_text="Timestamp of last modification. Updated automatically on every save.",
     )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -46,12 +46,12 @@ class BaseModel(models.Model):
         null=True,
         blank=True,
         related_name="%(app_label)s_%(class)s_created",
-        help_text="The user who created this record."
+        help_text="The user who created this record.",
     )
     is_active = models.BooleanField(
         default=True,
         db_index=True,
-        help_text="Soft delete flag. False means logically deleted. Record is never hard-deleted."
+        help_text="Soft delete flag. False means logically deleted. Record is never hard-deleted.",
     )
 
     class Meta:

@@ -6,10 +6,7 @@ from core.exceptions import MonographAlreadyApproved
 class MonographTestSerializer(serializers.ModelSerializer):
     class Meta:
         model = MonographTest
-        fields = [
-            "id", "name", "method",
-            "specification", "unit", "sequence"
-        ]
+        fields = ["id", "name", "method", "specification", "unit", "sequence"]
         read_only_fields = ["id"]
 
 
@@ -20,9 +17,16 @@ class MonographSerializer(serializers.ModelSerializer):
     class Meta:
         model = Monograph
         fields = [
-            "id", "name", "version", "effective_date",
-            "status", "approved_by", "approved_by_name",
-            "approved_at", "tests", "created_at"
+            "id",
+            "name",
+            "version",
+            "effective_date",
+            "status",
+            "approved_by",
+            "approved_by_name",
+            "approved_at",
+            "tests",
+            "created_at",
         ]
         read_only_fields = ["id", "approved_by", "approved_at", "created_at"]
 
@@ -44,9 +48,15 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = [
-            "id", "name", "strength", "dosage_form",
-            "description", "monograph", "monograph_name",
-            "is_active", "created_at"
+            "id",
+            "name",
+            "strength",
+            "dosage_form",
+            "description",
+            "monograph",
+            "monograph_name",
+            "is_active",
+            "created_at",
         ]
         read_only_fields = ["id", "created_at"]
 

@@ -20,13 +20,12 @@ class MonographListCreateView(APIView):
     GET  /api/v1/products/monographs/       — list all monographs
     POST /api/v1/products/monographs/       — create new monograph
     """
+
     permission_classes = [IsAnalystOrAbove]
 
     def get(self, request):
         monographs = Monograph.objects.all()
-        return success_response(
-            data=MonographSerializer(monographs, many=True).data
-        )
+        return success_response(data=MonographSerializer(monographs, many=True).data)
 
     def post(self, request):
         serializer = MonographCreateSerializer(data=request.data)
@@ -44,8 +43,7 @@ class MonographListCreateView(APIView):
         )
 
         return success_response(
-            data=MonographSerializer(monograph).data,
-            status_code=status.HTTP_201_CREATED
+            data=MonographSerializer(monograph).data, status_code=status.HTTP_201_CREATED
         )
 
 
@@ -54,6 +52,7 @@ class MonographDetailView(APIView):
     GET   /api/v1/products/monographs/<id>/  — get monograph detail
     PATCH /api/v1/products/monographs/<id>/  — update monograph
     """
+
     permission_classes = [IsAnalystOrAbove]
 
     def get_object(self, pk):
@@ -65,26 +64,18 @@ class MonographDetailView(APIView):
     def get(self, request, pk):
         monograph = self.get_object(pk)
         if not monograph:
-            return error_response(
-                {"detail": "Monograph not found."},
-                status.HTTP_404_NOT_FOUND
-            )
+            return error_response({"detail": "Monograph not found."}, status.HTTP_404_NOT_FOUND)
         return success_response(data=MonographSerializer(monograph).data)
 
     def patch(self, request, pk):
         monograph = self.get_object(pk)
         if not monograph:
-            return error_response(
-                {"detail": "Monograph not found."},
-                status.HTTP_404_NOT_FOUND
-            )
+            return error_response({"detail": "Monograph not found."}, status.HTTP_404_NOT_FOUND)
         if monograph.is_approved():
             raise MonographAlreadyApproved()
 
         old_value = MonographSerializer(monograph).data
-        serializer = MonographCreateSerializer(
-            monograph, data=request.data, partial=True
-        )
+        serializer = MonographCreateSerializer(monograph, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
@@ -108,16 +99,14 @@ class MonographApproveView(APIView):
     Approves a monograph. QA Manager only.
     Once approved, monograph cannot be edited.
     """
+
     permission_classes = [IsQAManager]
 
     def post(self, request, pk):
         try:
             monograph = Monograph.objects.get(pk=pk)
         except Monograph.DoesNotExist:
-            return error_response(
-                {"detail": "Monograph not found."},
-                status.HTTP_404_NOT_FOUND
-            )
+            return error_response({"detail": "Monograph not found."}, status.HTTP_404_NOT_FOUND)
 
         if monograph.is_approved():
             raise MonographAlreadyApproved()
@@ -140,8 +129,7 @@ class MonographApproveView(APIView):
         )
 
         return success_response(
-            data=MonographSerializer(monograph).data,
-            message="Monograph approved successfully."
+            data=MonographSerializer(monograph).data, message="Monograph approved successfully."
         )
 
 
@@ -150,6 +138,7 @@ class MonographTestListCreateView(APIView):
     GET  /api/v1/products/monographs/<id>/tests/  — list tests
     POST /api/v1/products/monographs/<id>/tests/  — add test
     """
+
     permission_classes = [IsAnalystOrAbove]
 
     def get_monograph(self, pk):
@@ -161,31 +150,20 @@ class MonographTestListCreateView(APIView):
     def get(self, request, pk):
         monograph = self.get_monograph(pk)
         if not monograph:
-            return error_response(
-                {"detail": "Monograph not found."},
-                status.HTTP_404_NOT_FOUND
-            )
+            return error_response({"detail": "Monograph not found."}, status.HTTP_404_NOT_FOUND)
         tests = monograph.tests.all()
-        return success_response(
-            data=MonographTestSerializer(tests, many=True).data
-        )
+        return success_response(data=MonographTestSerializer(tests, many=True).data)
 
     def post(self, request, pk):
         monograph = self.get_monograph(pk)
         if not monograph:
-            return error_response(
-                {"detail": "Monograph not found."},
-                status.HTTP_404_NOT_FOUND
-            )
+            return error_response({"detail": "Monograph not found."}, status.HTTP_404_NOT_FOUND)
         if monograph.is_approved():
             raise MonographAlreadyApproved()
 
         serializer = MonographTestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        test = serializer.save(
-            monograph=monograph,
-            created_by=request.user
-        )
+        test = serializer.save(monograph=monograph, created_by=request.user)
 
         AuditService.log(
             performed_by=request.user,
@@ -198,8 +176,7 @@ class MonographTestListCreateView(APIView):
         )
 
         return success_response(
-            data=MonographTestSerializer(test).data,
-            status_code=status.HTTP_201_CREATED
+            data=MonographTestSerializer(test).data, status_code=status.HTTP_201_CREATED
         )
 
 
@@ -208,13 +185,12 @@ class ProductListCreateView(APIView):
     GET  /api/v1/products/        — list all products
     POST /api/v1/products/        — create new product
     """
+
     permission_classes = [IsAnalystOrAbove]
 
     def get(self, request):
         products = Product.objects.all()
-        return success_response(
-            data=ProductSerializer(products, many=True).data
-        )
+        return success_response(data=ProductSerializer(products, many=True).data)
 
     def post(self, request):
         serializer = ProductSerializer(data=request.data)
@@ -232,8 +208,7 @@ class ProductListCreateView(APIView):
         )
 
         return success_response(
-            data=ProductSerializer(product).data,
-            status_code=status.HTTP_201_CREATED
+            data=ProductSerializer(product).data, status_code=status.HTTP_201_CREATED
         )
 
 
@@ -242,6 +217,7 @@ class ProductDetailView(APIView):
     GET   /api/v1/products/<id>/  — product detail
     PATCH /api/v1/products/<id>/  — update product
     """
+
     permission_classes = [IsAnalystOrAbove]
 
     def get_object(self, pk):
@@ -253,23 +229,15 @@ class ProductDetailView(APIView):
     def get(self, request, pk):
         product = self.get_object(pk)
         if not product:
-            return error_response(
-                {"detail": "Product not found."},
-                status.HTTP_404_NOT_FOUND
-            )
+            return error_response({"detail": "Product not found."}, status.HTTP_404_NOT_FOUND)
         return success_response(data=ProductSerializer(product).data)
 
     def patch(self, request, pk):
         product = self.get_object(pk)
         if not product:
-            return error_response(
-                {"detail": "Product not found."},
-                status.HTTP_404_NOT_FOUND
-            )
+            return error_response({"detail": "Product not found."}, status.HTTP_404_NOT_FOUND)
         old_value = ProductSerializer(product).data
-        serializer = ProductSerializer(
-            product, data=request.data, partial=True
-        )
+        serializer = ProductSerializer(product, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 

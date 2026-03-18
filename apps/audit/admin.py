@@ -9,9 +9,17 @@ class AuditLogAdmin(admin.ModelAdmin):
     search_fields = ["object_repr", "object_id"]
     ordering = ["-timestamp"]
     readonly_fields = [
-        "id", "performed_by", "action", "model_name",
-        "object_id", "object_repr", "old_value",
-        "new_value", "ip_address", "timestamp", "notes"
+        "id",
+        "performed_by",
+        "action",
+        "model_name",
+        "object_id",
+        "object_repr",
+        "old_value",
+        "new_value",
+        "ip_address",
+        "timestamp",
+        "notes",
     ]
 
     def has_add_permission(self, request):

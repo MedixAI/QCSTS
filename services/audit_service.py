@@ -38,7 +38,7 @@ class AuditService:
         old_value=None,
         new_value=None,
         ip_address=None,
-        notes=""
+        notes="",
     ):
         """
         Creates an immutable audit log entry.
@@ -63,5 +63,8 @@ class AuditService:
             # Non-fatal — log to file, never raise
             logger.error(
                 "AuditService failed to write log | action=%s model=%s object=%s error=%s",
-                action, model_name, object_id, str(e)
+                action,
+                model_name,
+                object_id,
+                str(e),
             )

@@ -9,6 +9,7 @@ class LoginSerializer(serializers.Serializer):
     Validates login credentials.
     Returns the user object if valid — the view handles token generation.
     """
+
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
@@ -38,6 +39,7 @@ class UserSerializer(serializers.ModelSerializer):
     Shapes the user object returned to the frontend after login
     and in user management endpoints.
     """
+
     class Meta:
         model = CustomUser
         fields = ["id", "email", "full_name", "role", "is_active", "created_at"]
@@ -49,6 +51,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
     Used by admin to create new user accounts.
     Password is write-only — never returned in any response.
     """
+
     password = serializers.CharField(write_only=True, min_length=12)
 
     class Meta:
@@ -64,6 +67,7 @@ class ChangePasswordSerializer(serializers.Serializer):
     Used when a user changes their own password.
     Requires current password for verification.
     """
+
     current_password = serializers.CharField(write_only=True)
     new_password = serializers.CharField(write_only=True, min_length=12)
 

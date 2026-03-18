@@ -33,12 +33,15 @@ class TestMonographViews:
     def test_analyst_can_create_monograph(self):
         analyst = UserFactory()
         c = auth_client(analyst)
-        response = c.post("/api/v1/products/monographs/", {
-            "name": "BP Monograph",
-            "version": "1.0",
-            "effective_date": "2024-01-01",
-            "status": "draft"
-        })
+        response = c.post(
+            "/api/v1/products/monographs/",
+            {
+                "name": "BP Monograph",
+                "version": "1.0",
+                "effective_date": "2024-01-01",
+                "status": "draft",
+            },
+        )
         assert response.status_code == 201
         assert response.data["data"]["name"] == "BP Monograph"
 
@@ -59,18 +62,14 @@ class TestMonographViews:
         analyst = UserFactory()
         monograph = MonographFactory()
         c = auth_client(analyst)
-        response = c.patch(f"/api/v1/products/monographs/{monograph.id}/", {
-            "version": "2.0"
-        })
+        response = c.patch(f"/api/v1/products/monographs/{monograph.id}/", {"version": "2.0"})
         assert response.status_code == 200
 
     def test_cannot_update_approved_monograph(self):
         analyst = UserFactory()
         monograph = ApprovedMonographFactory()
         c = auth_client(analyst)
-        response = c.patch(f"/api/v1/products/monographs/{monograph.id}/", {
-            "version": "2.0"
-        })
+        response = c.patch(f"/api/v1/products/monographs/{monograph.id}/", {"version": "2.0"})
         assert response.status_code == 409
 
     def test_qa_manager_can_approve_monograph(self):
@@ -110,8 +109,8 @@ class TestMonographTestViews:
                 "method": "HPLC",
                 "specification": "98.0% - 102.0%",
                 "unit": "%",
-                "sequence": 1
-            }
+                "sequence": 1,
+            },
         )
         assert response.status_code == 201
         assert response.data["data"]["name"] == "Assay"
@@ -127,8 +126,8 @@ class TestMonographTestViews:
                 "method": "HPLC",
                 "specification": "98.0% - 102.0%",
                 "unit": "%",
-                "sequence": 1
-            }
+                "sequence": 1,
+            },
         )
         assert response.status_code == 409
 
@@ -157,12 +156,15 @@ class TestProductViews:
         analyst = UserFactory()
         monograph = ApprovedMonographFactory()
         c = auth_client(analyst)
-        response = c.post("/api/v1/products/", {
-            "name": "Amoxicillin",
-            "strength": "500 mg",
-            "dosage_form": "capsule",
-            "monograph": str(monograph.id)
-        })
+        response = c.post(
+            "/api/v1/products/",
+            {
+                "name": "Amoxicillin",
+                "strength": "500 mg",
+                "dosage_form": "capsule",
+                "monograph": str(monograph.id),
+            },
+        )
         assert response.status_code == 201
         assert response.data["data"]["name"] == "Amoxicillin"
 
@@ -177,9 +179,9 @@ class TestProductViews:
         analyst = UserFactory()
         product = ProductFactory()
         c = auth_client(analyst)
-        response = c.patch(f"/api/v1/products/{product.id}/", {
-            "description": "Updated description"
-        })
+        response = c.patch(
+            f"/api/v1/products/{product.id}/", {"description": "Updated description"}
+        )
         assert response.status_code == 200
 
     def test_unauthenticated_cannot_access_products(self):

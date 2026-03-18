@@ -22,6 +22,7 @@ class LoginView(APIView):
     Accepts email + password, returns JWT tokens + user object.
     No authentication required — this is the entry point.
     """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -44,7 +45,7 @@ class LoginView(APIView):
                 "refresh": str(refresh),
                 "user": UserSerializer(user).data,
             },
-            status_code=status.HTTP_200_OK
+            status_code=status.HTTP_200_OK,
         )
 
 
@@ -53,6 +54,7 @@ class LogoutView(APIView):
     POST /api/v1/auth/logout/
     Blacklists the refresh token so it cannot be reused.
     """
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -70,6 +72,7 @@ class MeView(APIView):
     GET /api/v1/auth/me/
     Returns the currently logged-in user's profile.
     """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -81,6 +84,7 @@ class UserListCreateView(APIView):
     GET  /api/v1/auth/users/  — list all users (admin only)
     POST /api/v1/auth/users/  — create new user (admin only)
     """
+
     permission_classes = [IsAdmin]
 
     def get(self, request):
@@ -91,10 +95,7 @@ class UserListCreateView(APIView):
         serializer = CreateUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        return success_response(
-            data=UserSerializer(user).data,
-            status_code=status.HTTP_201_CREATED
-        )
+        return success_response(data=UserSerializer(user).data, status_code=status.HTTP_201_CREATED)
 
 
 class UserDetailView(APIView):
@@ -103,6 +104,7 @@ class UserDetailView(APIView):
     PATCH  /api/v1/auth/users/<id>/  — update user (admin only)
     DELETE /api/v1/auth/users/<id>/  — deactivate user (admin only)
     """
+
     permission_classes = [IsAdmin]
 
     def get_object(self, pk):
@@ -114,19 +116,13 @@ class UserDetailView(APIView):
     def get(self, request, pk):
         user = self.get_object(pk)
         if not user:
-            return error_response(
-                {"detail": "User not found."},
-                status.HTTP_404_NOT_FOUND
-            )
+            return error_response({"detail": "User not found."}, status.HTTP_404_NOT_FOUND)
         return success_response(data=UserSerializer(user).data)
 
     def patch(self, request, pk):
         user = self.get_object(pk)
         if not user:
-            return error_response(
-                {"detail": "User not found."},
-                status.HTTP_404_NOT_FOUND
-            )
+            return error_response({"detail": "User not found."}, status.HTTP_404_NOT_FOUND)
         serializer = UserSerializer(user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -135,10 +131,7 @@ class UserDetailView(APIView):
     def delete(self, request, pk):
         user = self.get_object(pk)
         if not user:
-            return error_response(
-                {"detail": "User not found."},
-                status.HTTP_404_NOT_FOUND
-            )
+            return error_response({"detail": "User not found."}, status.HTTP_404_NOT_FOUND)
         user.is_active = False
         user.save(update_fields=["is_active"])
         return success_response(message="User deactivated successfully.")
@@ -149,13 +142,11 @@ class ChangePasswordView(APIView):
     POST /api/v1/auth/change-password/
     Allows a logged-in user to change their own password.
     """
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        serializer = ChangePasswordSerializer(
-            data=request.data,
-            context={"request": request}
-        )
+        serializer = ChangePasswordSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         request.user.set_password(serializer.validated_data["new_password"])
         request.user.save()

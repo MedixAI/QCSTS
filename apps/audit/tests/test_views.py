@@ -51,10 +51,7 @@ class TestAuditLogListView:
         c = auth_client(qa)
         response = c.get("/api/v1/audit/?model_name=Batch")
         assert response.status_code == 200
-        assert all(
-            log["model_name"] == "Batch"
-            for log in response.data["data"]
-        )
+        assert all(log["model_name"] == "Batch" for log in response.data["data"])
 
     def test_filter_by_action(self):
         qa = QAManagerFactory()
@@ -63,10 +60,7 @@ class TestAuditLogListView:
         c = auth_client(qa)
         response = c.get("/api/v1/audit/?action=CREATE")
         assert response.status_code == 200
-        assert all(
-            log["action"] == "CREATE"
-            for log in response.data["data"]
-        )
+        assert all(log["action"] == "CREATE" for log in response.data["data"])
 
 
 @pytest.mark.django_db
@@ -82,6 +76,7 @@ class TestAuditLogDetailView:
 
     def test_nonexistent_log_returns_404(self):
         import uuid
+
         qa = QAManagerFactory()
         c = auth_client(qa)
         response = c.get(f"/api/v1/audit/{uuid.uuid4()}/")

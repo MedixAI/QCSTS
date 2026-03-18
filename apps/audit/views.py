@@ -19,6 +19,7 @@ class AuditLogListView(APIView):
         ?date_from=2024-01-01
         ?date_to=2024-12-31
     """
+
     permission_classes = [IsQAManager]
 
     def get(self, request):
@@ -50,6 +51,7 @@ class AuditLogDetailView(APIView):
     GET /api/v1/audit/<id>/
     Returns a single audit log entry. QA Manager and Admin only.
     """
+
     permission_classes = [IsQAManager]
 
     def get(self, request, pk):
@@ -57,8 +59,8 @@ class AuditLogDetailView(APIView):
             log = AuditLog.objects.get(pk=pk)
         except AuditLog.DoesNotExist:
             from core.responses import error_response
+
             return error_response(
-                {"detail": "Audit log entry not found."},
-                status.HTTP_404_NOT_FOUND
+                {"detail": "Audit log entry not found."}, status.HTTP_404_NOT_FOUND
             )
         return success_response(data=AuditLogSerializer(log).data)

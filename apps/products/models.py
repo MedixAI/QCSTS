@@ -10,7 +10,7 @@ class Monograph(BaseModel):
     """
 
     STATUS_CHOICES = [
-        ("draft",    "Draft"),
+        ("draft", "Draft"),
         ("approved", "Approved"),
         ("inactive", "Inactive"),
     ]
@@ -18,17 +18,13 @@ class Monograph(BaseModel):
     name = models.CharField(max_length=255)
     version = models.CharField(max_length=50)
     effective_date = models.DateField()
-    status = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default="draft"
-    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="draft")
     approved_by = models.ForeignKey(
         "accounts.CustomUser",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="approved_monographs"
+        related_name="approved_monographs",
     )
     approved_at = models.DateTimeField(null=True, blank=True)
 
@@ -57,31 +53,15 @@ class MonographTest(BaseModel):
     - what result is acceptable (specification)
     """
 
-    monograph = models.ForeignKey(
-        Monograph,
-        on_delete=models.CASCADE,
-        related_name="tests"
-    )
-    name = models.CharField(
-        max_length=255,
-        help_text="e.g. Assay, pH, Dissolution"
-    )
-    method = models.CharField(
-        max_length=255,
-        help_text="e.g. USP <711>, HPLC Method A"
-    )
+    monograph = models.ForeignKey(Monograph, on_delete=models.CASCADE, related_name="tests")
+    name = models.CharField(max_length=255, help_text="e.g. Assay, pH, Dissolution")
+    method = models.CharField(max_length=255, help_text="e.g. USP <711>, HPLC Method A")
     specification = models.CharField(
-        max_length=500,
-        help_text="e.g. 98.0% - 102.0%, NLT 75% in 30 min"
+        max_length=500, help_text="e.g. 98.0% - 102.0%, NLT 75% in 30 min"
     )
-    unit = models.CharField(
-        max_length=50,
-        blank=True,
-        help_text="e.g. %, mg, pH units"
-    )
+    unit = models.CharField(max_length=50, blank=True, help_text="e.g. %, mg, pH units")
     sequence = models.PositiveIntegerField(
-        default=1,
-        help_text="Display order of this test in the monograph"
+        default=1, help_text="Display order of this test in the monograph"
     )
 
     objects = ActiveManager()
@@ -103,34 +83,24 @@ class Product(BaseModel):
     """
 
     DOSAGE_FORM_CHOICES = [
-        ("tablet",      "Tablet"),
-        ("capsule",     "Capsule"),
-        ("syrup",       "Syrup"),
-        ("injection",   "Injection"),
-        ("cream",       "Cream"),
-        ("ointment",    "Ointment"),
-        ("gel",         "Gel"),
+        ("tablet", "Tablet"),
+        ("capsule", "Capsule"),
+        ("syrup", "Syrup"),
+        ("injection", "Injection"),
+        ("cream", "Cream"),
+        ("ointment", "Ointment"),
+        ("gel", "Gel"),
         ("suppository", "Suppository"),
-        ("suspension",  "Suspension"),
-        ("solution",    "Solution"),
+        ("suspension", "Suspension"),
+        ("solution", "Solution"),
     ]
 
     name = models.CharField(max_length=255)
-    strength = models.CharField(
-        max_length=100,
-        help_text="e.g. 500 mg, 250 mg/5 ml"
-    )
-    dosage_form = models.CharField(
-        max_length=50,
-        choices=DOSAGE_FORM_CHOICES
-    )
+    strength = models.CharField(max_length=100, help_text="e.g. 500 mg, 250 mg/5 ml")
+    dosage_form = models.CharField(max_length=50, choices=DOSAGE_FORM_CHOICES)
     description = models.TextField(blank=True)
     monograph = models.ForeignKey(
-        Monograph,
-        on_delete=models.PROTECT,
-        related_name="products",
-        null=True,
-        blank=True
+        Monograph, on_delete=models.PROTECT, related_name="products", null=True, blank=True
     )
 
     objects = ActiveManager()
