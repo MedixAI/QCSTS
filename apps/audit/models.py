@@ -15,61 +15,40 @@ class AuditLog(models.Model):
     """
 
     ACTION_CHOICES = [
-        ("CREATE",   "Create"),
-        ("UPDATE",   "Update"),
-        ("DELETE",   "Delete"),
-        ("LOGIN",    "Login"),
-        ("LOGOUT",   "Logout"),
-        ("SIGN",     "Electronic Signature"),
-        ("APPROVE",  "Approve"),
-        ("REJECT",   "Reject"),
+        ("CREATE", "Create"),
+        ("UPDATE", "Update"),
+        ("DELETE", "Delete"),
+        ("LOGIN", "Login"),
+        ("LOGOUT", "Logout"),
+        ("SIGN", "Electronic Signature"),
+        ("APPROVE", "Approve"),
+        ("REJECT", "Reject"),
     ]
 
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
-    )
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     performed_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name="audit_logs"
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="audit_logs"
     )
     action = models.CharField(max_length=20, choices=ACTION_CHOICES)
     model_name = models.CharField(
-        max_length=100,
-        help_text="Name of the model that was changed. e.g. Batch, TestResult"
+        max_length=100, help_text="Name of the model that was changed. e.g. Batch, TestResult"
     )
-    object_id = models.CharField(
-        max_length=100,
-        help_text="UUID of the record that was changed."
-    )
+    object_id = models.CharField(max_length=100, help_text="UUID of the record that was changed.")
     object_repr = models.CharField(
-        max_length=255,
-        help_text="Human-readable representation of the record at time of change."
+        max_length=255, help_text="Human-readable representation of the record at time of change."
     )
     old_value = models.JSONField(
-        null=True,
-        blank=True,
-        help_text="State of the record before the change."
+        null=True, blank=True, help_text="State of the record before the change."
     )
     new_value = models.JSONField(
-        null=True,
-        blank=True,
-        help_text="State of the record after the change."
+        null=True, blank=True, help_text="State of the record after the change."
     )
-    ip_address = models.GenericIPAddressField(
-        null=True,
-        blank=True
-    )
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
     timestamp = models.DateTimeField(
-        auto_now_add=True,
-        help_text="Exact server time when this action occurred. Never editable."
+        auto_now_add=True, help_text="Exact server time when this action occurred. Never editable."
     )
     notes = models.TextField(
-        blank=True,
-        help_text="Optional context about why this change was made."
+        blank=True, help_text="Optional context about why this change was made."
     )
 
     class Meta:

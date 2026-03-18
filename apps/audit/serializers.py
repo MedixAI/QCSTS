@@ -8,6 +8,7 @@ class AuditLogSerializer(serializers.ModelSerializer):
     No create/update operations — audit logs are written
     exclusively by AuditService, never through the API.
     """
+
     performed_by_name = serializers.SerializerMethodField()
 
     class Meta:

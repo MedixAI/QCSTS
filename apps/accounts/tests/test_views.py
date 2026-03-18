@@ -29,10 +29,9 @@ def auth_client(user):
 class TestLoginView:
 
     def test_login_success(self, client, analyst):
-        response = client.post("/api/v1/auth/login/", {
-            "email": analyst.email,
-            "password": "TestPass123!"
-        })
+        response = client.post(
+            "/api/v1/auth/login/", {"email": analyst.email, "password": "TestPass123!"}
+        )
         assert response.status_code == 200
         assert response.data["success"] is True
         assert "access" in response.data["data"]
@@ -40,28 +39,25 @@ class TestLoginView:
         assert response.data["data"]["user"]["email"] == analyst.email
 
     def test_login_wrong_password(self, client, analyst):
-        response = client.post("/api/v1/auth/login/", {
-            "email": analyst.email,
-            "password": "WrongPassword!"
-        })
+        response = client.post(
+            "/api/v1/auth/login/", {"email": analyst.email, "password": "WrongPassword!"}
+        )
         assert response.status_code == 401
         assert response.data["success"] is False
 
     def test_login_nonexistent_user(self, client):
-        response = client.post("/api/v1/auth/login/", {
-            "email": "nobody@cqsts.com",
-            "password": "TestPass123!"
-        })
+        response = client.post(
+            "/api/v1/auth/login/", {"email": "nobody@cqsts.com", "password": "TestPass123!"}
+        )
         assert response.status_code == 400
         assert response.data["success"] is False
 
     def test_login_locked_account(self, client, analyst):
         analyst.is_active = False
         analyst.save()
-        response = client.post("/api/v1/auth/login/", {
-            "email": analyst.email,
-            "password": "TestPass123!"
-        })
+        response = client.post(
+            "/api/v1/auth/login/", {"email": analyst.email, "password": "TestPass123!"}
+        )
         assert response.status_code == 403
         assert response.data["success"] is False
 
@@ -85,23 +81,29 @@ class TestUserManagement:
 
     def test_admin_can_create_user(self, admin):
         c = auth_client(admin)
-        response = c.post("/api/v1/auth/users/", {
-            "email": "newuser@cqsts.com",
-            "full_name": "New User",
-            "role": "analyst",
-            "password": "SecurePass123!"
-        })
+        response = c.post(
+            "/api/v1/auth/users/",
+            {
+                "email": "newuser@cqsts.com",
+                "full_name": "New User",
+                "role": "analyst",
+                "password": "SecurePass123!",
+            },
+        )
         assert response.status_code == 201
         assert response.data["data"]["email"] == "newuser@cqsts.com"
 
     def test_analyst_cannot_create_user(self, analyst):
         c = auth_client(analyst)
-        response = c.post("/api/v1/auth/users/", {
-            "email": "newuser@cqsts.com",
-            "full_name": "New User",
-            "role": "analyst",
-            "password": "SecurePass123!"
-        })
+        response = c.post(
+            "/api/v1/auth/users/",
+            {
+                "email": "newuser@cqsts.com",
+                "full_name": "New User",
+                "role": "analyst",
+                "password": "SecurePass123!",
+            },
+        )
         assert response.status_code == 403
 
     def test_admin_can_list_users(self, admin):
@@ -137,13 +139,12 @@ class TestUserDetailView:
     def test_admin_can_update_user(self, admin):
         user = UserFactory()
         c = auth_client(admin)
-        response = c.patch(f"/api/v1/auth/users/{user.id}/", {
-            "full_name": "Updated Name"
-        })
+        response = c.patch(f"/api/v1/auth/users/{user.id}/", {"full_name": "Updated Name"})
         assert response.status_code == 200
 
     def test_get_nonexistent_user_returns_404(self, admin):
         import uuid
+
         c = auth_client(admin)
         response = c.get(f"/api/v1/auth/users/{uuid.uuid4()}/")
         assert response.status_code == 404
@@ -154,16 +155,16 @@ class TestChangePasswordView:
 
     def test_user_can_change_password(self, analyst):
         c = auth_client(analyst)
-        response = c.post("/api/v1/auth/change-password/", {
-            "current_password": "TestPass123!",
-            "new_password": "NewSecurePass123!"
-        })
+        response = c.post(
+            "/api/v1/auth/change-password/",
+            {"current_password": "TestPass123!", "new_password": "NewSecurePass123!"},
+        )
         assert response.status_code == 200
 
     def test_wrong_current_password_fails(self, analyst):
         c = auth_client(analyst)
-        response = c.post("/api/v1/auth/change-password/", {
-            "current_password": "WrongPassword!",
-            "new_password": "NewSecurePass123!"
-        })
+        response = c.post(
+            "/api/v1/auth/change-password/",
+            {"current_password": "WrongPassword!", "new_password": "NewSecurePass123!"},
+        )
         assert response.status_code == 400

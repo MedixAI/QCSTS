@@ -57,7 +57,7 @@ def paginated_response(data, count, page, pages, status_code=status.HTTP_200_OK)
             },
             "errors": None,
         },
-        status=status_code
+        status=status_code,
     )
 
 
@@ -78,5 +78,5 @@ def error_response(errors, status_code=status.HTTP_400_BAD_REQUEST):
             "data": None,
             "errors": errors,
         },
-        status=status_code
+        status=status_code,
     )

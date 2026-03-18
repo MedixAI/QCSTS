@@ -24,10 +24,10 @@ class CustomUserManager(BaseUserManager):
 class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     ROLE_CHOICES = [
-        ("admin",      "Admin"),
+        ("admin", "Admin"),
         ("qa_manager", "QA Manager"),
         ("supervisor", "Supervisor"),
-        ("analyst",    "Analyst"),
+        ("analyst", "Analyst"),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
