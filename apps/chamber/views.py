@@ -19,23 +19,22 @@ class ChamberInventoryView(APIView):
     Lists all active batches in the chamber with their current
     location and quantity remaining.
     """
+
     permission_classes = [IsAnalystOrAbove]
 
     def get(self, request):
         from apps.batches.models import Batch
         from apps.batches.serializers import BatchSerializer
 
-        queryset = Batch.objects.select_related(
-            "product", "product__monograph"
-        ).filter(status="active")
+        queryset = Batch.objects.select_related("product", "product__monograph").filter(
+            status="active"
+        )
 
         study_type = request.query_params.get("study_type")
         if study_type:
             queryset = queryset.filter(study_type=study_type)
 
-        return success_response(
-            data=BatchSerializer(queryset, many=True).data
-        )
+        return success_response(data=BatchSerializer(queryset, many=True).data)
 
 
 class SamplePullListCreateView(APIView):
@@ -43,20 +42,17 @@ class SamplePullListCreateView(APIView):
     GET  /api/v1/chamber/pulls/       — list all sample pulls
     POST /api/v1/chamber/pulls/       — record a new sample pull
     """
+
     permission_classes = [IsAnalystOrAbove]
 
     def get(self, request):
-        queryset = SamplePull.objects.select_related(
-            "batch", "pulled_by"
-        ).all()
+        queryset = SamplePull.objects.select_related("batch", "pulled_by").all()
 
         batch_id = request.query_params.get("batch")
         if batch_id:
             queryset = queryset.filter(batch__id=batch_id)
 
-        return success_response(
-            data=SamplePullSerializer(queryset, many=True).data
-        )
+        return success_response(data=SamplePullSerializer(queryset, many=True).data)
 
     def post(self, request):
         serializer = SamplePullSerializer(data=request.data)
@@ -88,6 +84,7 @@ class ChangeBatchLocationView(APIView):
     Moves a batch to a new chamber location and logs the change.
     Step 7 from the workflow.
     """
+
     permission_classes = [IsAnalystOrAbove]
 
     def post(self, request):
@@ -127,7 +124,9 @@ class ChangeBatchLocationView(APIView):
                 model_name="Batch",
                 object_id=batch.id,
                 object_repr=str(batch),
-                old_value={"location": f"{location_log.old_shelf}/{location_log.old_rack}/{location_log.old_position}"},
+                old_value={
+                    "location": f"{location_log.old_shelf}/{location_log.old_rack}/{location_log.old_position}"
+                },
                 new_value={"location": batch.get_location()},
                 ip_address=request.META.get("REMOTE_ADDR"),
             )
@@ -143,10 +142,9 @@ class LocationHistoryView(APIView):
     GET /api/v1/chamber/locations/<batch_id>/
     Returns the full location history for a batch.
     """
+
     permission_classes = [IsAnalystOrAbove]
 
     def get(self, request, pk):
         history = LocationHistory.objects.filter(batch__id=pk)
-        return success_response(
-            data=LocationHistorySerializer(history, many=True).data
-        )
+        return success_response(data=LocationHistorySerializer(history, many=True).data)

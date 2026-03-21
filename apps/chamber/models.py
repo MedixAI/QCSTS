@@ -25,9 +25,7 @@ class SamplePull(BaseModel):
         null=True,
         blank=True,
     )
-    qty_pulled = models.PositiveIntegerField(
-        help_text="Number of units pulled from chamber."
-    )
+    qty_pulled = models.PositiveIntegerField(help_text="Number of units pulled from chamber.")
     pulled_by = models.ForeignKey(
         "accounts.CustomUser",
         on_delete=models.SET_NULL,

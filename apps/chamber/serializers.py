@@ -69,8 +69,14 @@ class LocationHistorySerializer(serializers.ModelSerializer):
             "reason",
             "created_at",
         ]
-        read_only_fields = ["id", "changed_by", "created_at",
-                            "old_shelf", "old_rack", "old_position"]
+        read_only_fields = [
+            "id",
+            "changed_by",
+            "created_at",
+            "old_shelf",
+            "old_rack",
+            "old_position",
+        ]
 
     def get_batch_number(self, obj):
         return obj.batch.batch_number
@@ -80,9 +86,8 @@ class ChangeBatchLocationSerializer(serializers.Serializer):
     """
     Used when an analyst moves a batch to a new location in the chamber.
     """
-    batch = serializers.PrimaryKeyRelatedField(
-        queryset=Batch.objects.all()
-    )
+
+    batch = serializers.PrimaryKeyRelatedField(queryset=Batch.objects.all())
     new_shelf = serializers.CharField(max_length=50)
     new_rack = serializers.CharField(max_length=50)
     new_position = serializers.CharField(max_length=50)
@@ -95,12 +100,14 @@ class ChangeBatchLocationSerializer(serializers.Serializer):
         new_position = data.get("new_position")
 
         # Check new location is not already occupied
-        if Batch.objects.filter(
-            shelf=new_shelf,
-            rack=new_rack,
-            position=new_position,
-        ).exclude(id=batch.id).exists():
-            raise serializers.ValidationError(
-                "This chamber location is already occupied."
+        if (
+            Batch.objects.filter(
+                shelf=new_shelf,
+                rack=new_rack,
+                position=new_position,
             )
+            .exclude(id=batch.id)
+            .exists()
+        ):
+            raise serializers.ValidationError("This chamber location is already occupied.")
         return data

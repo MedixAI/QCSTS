@@ -34,10 +34,7 @@ class TestChamberInventoryView:
         c = auth_client(analyst)
         response = c.get("/api/v1/chamber/?study_type=long_term")
         assert response.status_code == 200
-        assert all(
-            b["study_type"] == "long_term"
-            for b in response.data["data"]
-        )
+        assert all(b["study_type"] == "long_term" for b in response.data["data"])
 
 
 @pytest.mark.django_db
@@ -47,10 +44,13 @@ class TestSamplePullView:
         analyst = UserFactory()
         batch = BatchFactory(qty_placed=60, qty_remaining=60)
         c = auth_client(analyst)
-        response = c.post("/api/v1/chamber/pulls/", {
-            "batch": str(batch.id),
-            "qty_pulled": 5,
-        })
+        response = c.post(
+            "/api/v1/chamber/pulls/",
+            {
+                "batch": str(batch.id),
+                "qty_pulled": 5,
+            },
+        )
         assert response.status_code == 201
         batch.refresh_from_db()
         assert batch.qty_remaining == 55
@@ -59,10 +59,13 @@ class TestSamplePullView:
         analyst = UserFactory()
         batch = BatchFactory(qty_placed=10, qty_remaining=10)
         c = auth_client(analyst)
-        response = c.post("/api/v1/chamber/pulls/", {
-            "batch": str(batch.id),
-            "qty_pulled": 99,
-        })
+        response = c.post(
+            "/api/v1/chamber/pulls/",
+            {
+                "batch": str(batch.id),
+                "qty_pulled": 99,
+            },
+        )
         assert response.status_code == 422
 
     def test_analyst_can_list_pulls(self):
@@ -87,13 +90,16 @@ class TestChangeBatchLocationView:
         analyst = UserFactory()
         batch = BatchFactory(shelf="S1", rack="R1", position="P1")
         c = auth_client(analyst)
-        response = c.post("/api/v1/chamber/move/", {
-            "batch": str(batch.id),
-            "new_shelf": "S9",
-            "new_rack": "R9",
-            "new_position": "P9",
-            "reason": "Reorganization",
-        })
+        response = c.post(
+            "/api/v1/chamber/move/",
+            {
+                "batch": str(batch.id),
+                "new_shelf": "S9",
+                "new_rack": "R9",
+                "new_position": "P9",
+                "reason": "Reorganization",
+            },
+        )
         assert response.status_code == 201
         batch.refresh_from_db()
         assert batch.shelf == "S9"
@@ -105,12 +111,15 @@ class TestChangeBatchLocationView:
         batch1 = BatchFactory(shelf="S1", rack="R1", position="P1")
         batch2 = BatchFactory(shelf="S2", rack="R2", position="P2")
         c = auth_client(analyst)
-        response = c.post("/api/v1/chamber/move/", {
-            "batch": str(batch2.id),
-            "new_shelf": "S1",
-            "new_rack": "R1",
-            "new_position": "P1",
-        })
+        response = c.post(
+            "/api/v1/chamber/move/",
+            {
+                "batch": str(batch2.id),
+                "new_shelf": "S1",
+                "new_rack": "R1",
+                "new_position": "P1",
+            },
+        )
         assert response.status_code == 400
 
     def test_unauthenticated_cannot_move_batch(self):
