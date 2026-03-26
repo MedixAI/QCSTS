@@ -1,3 +1,6 @@
 from django.urls import path
+from apps.reports import views
 
-urlpatterns = []
+urlpatterns = [
+    path("dashboard/", views.DashboardView.as_view(), name="dashboard"),
+]
