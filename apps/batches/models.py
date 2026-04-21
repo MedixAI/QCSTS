@@ -69,3 +69,23 @@ class Batch(BaseModel):
 
     def get_location(self):
         return f"{self.shelf}/{self.rack}/{self.position}"
+
+    def update_status_from_test_points(self):
+        """
+        Update batch status based on its test points.
+        Called automatically when a test point status changes.
+        """
+        from apps.schedule.models import TestPoint  # local import to avoid circular dependency
+
+        test_points = TestPoint.objects.filter(batch=self)
+        if not test_points.exists():
+            return
+
+        if any(tp.status == "failed" for tp in test_points):
+            self.status = "failed"
+        elif all(tp.status == "completed" for tp in test_points):
+            self.status = "complete"
+        else:
+            self.status = "active"
+
+        self.save(update_fields=["status"])

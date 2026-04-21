@@ -1,8 +1,7 @@
 from django.urls import path
-from apps.results import views
+from apps.results.views import VerifySignatureView, SubmitResultView
 
 urlpatterns = [
-    path("", views.TestResultListCreateView.as_view(), name="result-list-create"),
-    path("<uuid:pk>/", views.TestResultDetailView.as_view(), name="result-detail"),
-    path("signature/verify/", views.SignatureVerifyView.as_view(), name="signature-verify"),
+    path("signature/verify/", VerifySignatureView.as_view(), name="verify-signature"),
+    path("", SubmitResultView.as_view(), name="submit-result"),
 ]

@@ -1,130 +1,92 @@
 from rest_framework.views import APIView
-from rest_framework import status
-
-from apps.results.models import TestResult
-from apps.results.serializers import TestResultSerializer
-from core.permissions import IsAnalystOrAbove, HasValidSignature
+from rest_framework.permissions import IsAuthenticated
+from core.permissions import IsAnalystOrAbove
 from core.responses import success_response, error_response
-from services.audit_service import AuditService
+from apps.results.models import TestResult
+from apps.schedule.models import TestPoint
+from apps.products.models import MonographTest
+from services.signature_service import SignatureService
+from services.outcome_evaluator import OutcomeEvaluator
 
 
-class TestResultListCreateView(APIView):
-    """
-    GET  /api/v1/results/         — list results
-    POST /api/v1/results/         — submit a new result (requires e-signature)
-    """
-
-    def get_permissions(self):
-        if self.request.method == "POST":
-            return [IsAnalystOrAbove(), HasValidSignature()]
-        return [IsAnalystOrAbove()]
-
-    def get(self, request):
-        queryset = TestResult.objects.select_related(
-            "test_point", "monograph_test", "analyst"
-        ).all()
-
-        test_point_id = request.query_params.get("test_point")
-        pass_fail = request.query_params.get("pass_fail")
-
-        if test_point_id:
-            queryset = queryset.filter(test_point__id=test_point_id)
-        if pass_fail:
-            queryset = queryset.filter(pass_fail=pass_fail)
-
-        return success_response(data=TestResultSerializer(queryset, many=True).data)
-
-    def post(self, request):
-        serializer = TestResultSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        result = serializer.save(analyst=request.user)
-
-        AuditService.log(
-            performed_by=request.user,
-            action="CREATE",
-            model_name="TestResult",
-            object_id=result.id,
-            object_repr=str(result),
-            new_value={
-                "value": result.value,
-                "pass_fail": result.pass_fail,
-                "specification": result.specification_snapshot,
-            },
-            ip_address=request.META.get("REMOTE_ADDR"),
-        )
-
-        return success_response(
-            data=TestResultSerializer(result).data,
-            status_code=status.HTTP_201_CREATED,
-        )
-
-
-class TestResultDetailView(APIView):
-    """
-    GET /api/v1/results/<id>/  — get single result
-    """
-
-    permission_classes = [IsAnalystOrAbove]
-
-    def get(self, request, pk):
-        try:
-            result = TestResult.objects.select_related(
-                "test_point", "monograph_test", "analyst"
-            ).get(pk=pk)
-        except TestResult.DoesNotExist:
-            return error_response(
-                {"detail": "Result not found."},
-                status.HTTP_404_NOT_FOUND,
-            )
-        return success_response(data=TestResultSerializer(result).data)
-
-
-class SignatureVerifyView(APIView):
+class VerifySignatureView(APIView):
     """
     POST /api/v1/results/signature/verify/
-    Re-authenticates the analyst and issues a short-lived
-    signature token stored in Redis.
-
-    The analyst must call this before submitting results.
-    The token is valid for 5 minutes.
+    Body: { "password": "user_password" }
+    Returns: { "signature_token": "uuid" }
     """
-
-    permission_classes = [IsAnalystOrAbove]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        import uuid
-        from django.core.cache import cache
+        password = request.data.get('password')
+        user = request.user
 
-        password = request.data.get("password")
-        if not password:
-            return error_response(
-                {"password": ["This field is required."]},
-                status.HTTP_400_BAD_REQUEST,
-            )
+        if not user.check_password(password):
+            return error_response("Invalid password", status=401)
 
-        if not request.user.check_password(password):
-            request.user.increment_failed_attempts()
-            from core.exceptions import SignatureFailedError
+        token = SignatureService.issue(user)
+        return success_response({"signature_token": token})
 
-            raise SignatureFailedError()
 
-        request.user.reset_failed_attempts()
+class SubmitResultView(APIView):
+    """
+    POST /api/v1/results/
+    Header: X-Signature-Token: <token>
+    Body: {
+        "test_point": "uuid",
+        "monograph_test": "uuid",
+        "value": "99.5",
+        "unit": "%",
+        "notes": "optional"
+    }
+    """
+    permission_classes = [IsAuthenticated, IsAnalystOrAbove]
 
-        # Generate signature token and store in Redis for 5 minutes
-        token = str(uuid.uuid4())
-        cache_key = f"sig_token:{request.user.id}:{token}"
-        cache.set(cache_key, True, timeout=300)
+    def post(self, request):
+        token = request.headers.get('X-Signature-Token')
+        if not token or not SignatureService.validate(request.user, token):
+            return error_response("Invalid or missing signature token", status=401)
 
-        AuditService.log(
-            performed_by=request.user,
-            action="SIGN",
-            model_name="CustomUser",
-            object_id=request.user.id,
-            object_repr=str(request.user),
-            ip_address=request.META.get("REMOTE_ADDR"),
+        test_point_id = request.data.get('test_point')
+        monograph_test_id = request.data.get('monograph_test')
+        value = request.data.get('value')
+        unit = request.data.get('unit', '')
+        notes = request.data.get('notes', '')
+
+        if not all([test_point_id, monograph_test_id, value]):
+            return error_response("Missing required fields", status=400)
+
+        try:
+            test_point = TestPoint.objects.get(id=test_point_id)
+            monograph_test = MonographTest.objects.get(id=monograph_test_id)
+        except Exception:
+            return error_response("Invalid test_point or monograph_test", status=404)
+
+        if TestResult.objects.filter(test_point=test_point, monograph_test=monograph_test).exists():
+            return error_response("Result already submitted for this test point", status=409)
+
+        specification = monograph_test.specification
+        pass_fail = OutcomeEvaluator.evaluate(value, specification)
+
+        result = TestResult.objects.create(
+            test_point=test_point,
+            monograph_test=monograph_test,
+            value=value,
+            unit=unit,
+            specification_snapshot=specification,
+            pass_fail=pass_fail,
+            analyst=request.user,
+            notes=notes,
         )
 
-        return success_response(
-            data={"signature_token": token},
-            message="Signature verified. Token valid for 5 minutes.",
-        )
+        # This will update test point status and batch status
+        test_point.update_status()
+
+        return success_response({
+            "id": str(result.id),
+            "test_name": monograph_test.name,
+            "value": result.value,
+            "unit": result.unit,
+            "pass_fail": result.pass_fail,
+            "submitted_at": result.submitted_at.isoformat(),
+        })

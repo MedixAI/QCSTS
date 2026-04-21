@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from core.models import BaseModel, ActiveManager
 
 
@@ -44,6 +45,33 @@ class TestPoint(BaseModel):
         return f"{self.batch.batch_number} — Month {self.month} ({self.scheduled_date})"
 
     def is_overdue(self):
-        from django.utils import timezone
-
         return self.status == "pending" and self.scheduled_date < timezone.now().date()
+
+    def update_status(self):
+        """
+        Update this test point's status based on its submitted results.
+        Also triggers the parent batch to update its status.
+        """
+        from apps.results.models import TestResult  # local import to avoid circular dependency
+
+        results = TestResult.objects.filter(test_point=self)
+
+        if not results.exists():
+            # No results yet
+            if self.is_overdue():
+                self.status = "overdue"
+            else:
+                self.status = "pending"
+        elif any(r.pass_fail == "fail" for r in results):
+            self.status = "failed"
+        elif all(r.pass_fail == "pass" for r in results):
+            self.status = "completed"
+            self.completed_at = timezone.now()
+        else:
+            # Mixed or incomplete results (should not happen with unique_together, but keep as safety)
+            self.status = "pending"
+
+        self.save(update_fields=["status", "completed_at"])
+
+        # Update the parent batch status
+        self.batch.update_status_from_test_points()

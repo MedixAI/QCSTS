@@ -1,8 +1,4 @@
----
-noteId: "82691930295911f1a8fc1d6142185b60"
-tags: []
 
----
 
 # CQSTS Backend API Documentation
 

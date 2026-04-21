@@ -1,6 +1,7 @@
 import uuid
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
 
 
 class CustomUserManager(BaseUserManager):
@@ -41,6 +42,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     password_changed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    permissions = ArrayField(
+        models.CharField(max_length=100),
+        blank=True,
+        default=list,
+        help_text="List of permission codes this user has."
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["full_name"]

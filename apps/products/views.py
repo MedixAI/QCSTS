@@ -16,11 +16,6 @@ from services.audit_service import AuditService
 
 
 class MonographListCreateView(APIView):
-    """
-    GET  /api/v1/products/monographs/       — list all monographs
-    POST /api/v1/products/monographs/       — create new monograph
-    """
-
     permission_classes = [IsAnalystOrAbove]
 
     def get(self, request):
@@ -41,18 +36,12 @@ class MonographListCreateView(APIView):
             new_value=serializer.data,
             ip_address=request.META.get("REMOTE_ADDR"),
         )
-
         return success_response(
             data=MonographSerializer(monograph).data, status_code=status.HTTP_201_CREATED
         )
 
 
 class MonographDetailView(APIView):
-    """
-    GET   /api/v1/products/monographs/<id>/  — get monograph detail
-    PATCH /api/v1/products/monographs/<id>/  — update monograph
-    """
-
     permission_classes = [IsAnalystOrAbove]
 
     def get_object(self, pk):
@@ -89,17 +78,10 @@ class MonographDetailView(APIView):
             new_value=MonographSerializer(monograph).data,
             ip_address=request.META.get("REMOTE_ADDR"),
         )
-
         return success_response(data=MonographSerializer(monograph).data)
 
 
 class MonographApproveView(APIView):
-    """
-    POST /api/v1/products/monographs/<id>/approve/
-    Approves a monograph. QA Manager only.
-    Once approved, monograph cannot be edited.
-    """
-
     permission_classes = [IsQAManager]
 
     def post(self, request, pk):
@@ -127,18 +109,12 @@ class MonographApproveView(APIView):
             new_value={"status": "approved"},
             ip_address=request.META.get("REMOTE_ADDR"),
         )
-
         return success_response(
             data=MonographSerializer(monograph).data, message="Monograph approved successfully."
         )
 
 
 class MonographTestListCreateView(APIView):
-    """
-    GET  /api/v1/products/monographs/<id>/tests/  — list tests
-    POST /api/v1/products/monographs/<id>/tests/  — add test
-    """
-
     permission_classes = [IsAnalystOrAbove]
 
     def get_monograph(self, pk):
@@ -174,22 +150,18 @@ class MonographTestListCreateView(APIView):
             new_value=serializer.data,
             ip_address=request.META.get("REMOTE_ADDR"),
         )
-
         return success_response(
             data=MonographTestSerializer(test).data, status_code=status.HTTP_201_CREATED
         )
 
 
 class ProductListCreateView(APIView):
-    """
-    GET  /api/v1/products/        — list all products
-    POST /api/v1/products/        — create new product
-    """
-
+    # Allow all authenticated users (analyst, supervisor, qa_manager, admin)
     permission_classes = [IsAnalystOrAbove]
 
     def get(self, request):
         products = Product.objects.all()
+        # FIXED: added missing closing parenthesis
         return success_response(data=ProductSerializer(products, many=True).data)
 
     def post(self, request):
@@ -206,18 +178,12 @@ class ProductListCreateView(APIView):
             new_value=serializer.data,
             ip_address=request.META.get("REMOTE_ADDR"),
         )
-
         return success_response(
             data=ProductSerializer(product).data, status_code=status.HTTP_201_CREATED
         )
 
 
 class ProductDetailView(APIView):
-    """
-    GET   /api/v1/products/<id>/  — product detail
-    PATCH /api/v1/products/<id>/  — update product
-    """
-
     permission_classes = [IsAnalystOrAbove]
 
     def get_object(self, pk):
@@ -251,5 +217,4 @@ class ProductDetailView(APIView):
             new_value=ProductSerializer(product).data,
             ip_address=request.META.get("REMOTE_ADDR"),
         )
-
         return success_response(data=ProductSerializer(product).data)
