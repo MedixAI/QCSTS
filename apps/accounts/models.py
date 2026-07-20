@@ -1,11 +1,8 @@
 import uuid
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
-from django.contrib.postgres.fields import ArrayField
-
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
 class CustomUserManager(BaseUserManager):
-
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError("Email is required")
@@ -21,20 +18,19 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault("is_superuser", True)
         return self.create_user(email, password, **extra_fields)
 
-
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-
     ROLE_CHOICES = [
         ("admin", "Admin"),
         ("qa_manager", "QA Manager"),
         ("supervisor", "Supervisor"),
         ("analyst", "Analyst"),
+        ("system", "System"),   # New System Role
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=255)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="analyst")
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="analyst") # Fixed String
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     failed_login_attempts = models.IntegerField(default=0)
@@ -42,12 +38,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     password_changed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    permissions = ArrayField(
-        models.CharField(max_length=100),
-        blank=True,
-        default=list,
-        help_text="List of permission codes this user has."
-    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["full_name"]

@@ -17,6 +17,8 @@ from core.exceptions import AccountLockedError
 
 
 class LoginView(APIView):
+    serializer_class = LoginSerializer
+
     """
     POST /api/v1/auth/login/
     Accepts email + password, returns JWT tokens + user object.
@@ -50,6 +52,8 @@ class LoginView(APIView):
 
 
 class LogoutView(APIView):
+    serializer_class = LoginSerializer
+
     """
     POST /api/v1/auth/logout/
     Blacklists the refresh token so it cannot be reused.
@@ -68,6 +72,8 @@ class LogoutView(APIView):
 
 
 class MeView(APIView):
+    serializer_class = UserSerializer
+
     """
     GET /api/v1/auth/me/
     Returns the currently logged-in user's profile.
@@ -80,13 +86,7 @@ class MeView(APIView):
 
 
 class UserListCreateView(APIView):
-    """
-    GET  /api/v1/auth/users/  — list all users (admin only)
-    POST /api/v1/auth/users/  — create new user (admin only)
-    """
-
     permission_classes = [IsAdmin]
-
     def get(self, request):
         users = CustomUser.objects.all()
         return success_response(data=UserSerializer(users, many=True).data)
@@ -97,8 +97,35 @@ class UserListCreateView(APIView):
         user = serializer.save()
         return success_response(data=UserSerializer(user).data, status_code=status.HTTP_201_CREATED)
 
+class UserDetailView(APIView):
+    permission_classes = [IsAdmin]
+    def get_object(self, pk):
+        try: return CustomUser.objects.get(pk=pk)
+        except CustomUser.DoesNotExist: return None
+
+    def get(self, request, pk):
+        user = self.get_object(pk)
+        if not user: return error_response({"detail": "User not found."}, status.HTTP_404_NOT_FOUND)
+        return success_response(data=UserSerializer(user).data)
+
+    def patch(self, request, pk):
+        user = self.get_object(pk)
+        if not user: return error_response({"detail": "User not found."}, status.HTTP_404_NOT_FOUND)
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return success_response(data=UserSerializer(user).data)
+
+    def delete(self, request, pk):
+        user = self.get_object(pk)
+        if not user: return error_response({"detail": "User not found."}, status.HTTP_404_NOT_FOUND)
+        user.is_active = False
+        user.save(update_fields=["is_active"])
+        return success_response(message="User deactivated successfully.")
 
 class UserDetailView(APIView):
+    serializer_class = UserSerializer
+
     """
     GET    /api/v1/auth/users/<id>/  — get user detail (admin only)
     PATCH  /api/v1/auth/users/<id>/  — update user (admin only)
@@ -138,6 +165,8 @@ class UserDetailView(APIView):
 
 
 class ChangePasswordView(APIView):
+    serializer_class = ChangePasswordSerializer
+
     """
     POST /api/v1/auth/change-password/
     Allows a logged-in user to change their own password.

@@ -10,7 +10,7 @@ class TestPoint(BaseModel):
     Rules:
     - Created ONLY by ScheduleEngine — never manually
     - No POST endpoint exists for this model
-    - Status moves: pending → overdue (auto) or completed/failed
+    - Status moves: pending → pulled (manual) → overdue (auto) or completed/failed
     - One TestPoint covers ALL tests defined in the monograph
     """
 
@@ -19,6 +19,7 @@ class TestPoint(BaseModel):
         ("overdue", "Overdue"),
         ("completed", "Completed"),
         ("failed", "Failed"),
+        ("pulled", "Pulled"),  # <-- NEW STATUS ADDED
     ]
 
     batch = models.ForeignKey("batches.Batch", on_delete=models.CASCADE, related_name="test_points")
@@ -58,17 +59,17 @@ class TestPoint(BaseModel):
 
         if not results.exists():
             # No results yet
-            if self.is_overdue():
+            if self.is_overdue() and self.status != "pulled":
+                # Only mark overdue if NOT already pulled
                 self.status = "overdue"
-            else:
-                self.status = "pending"
+            # If it's pulled, keep it pulled. If pending/overdue, keep as is.
         elif any(r.pass_fail == "fail" for r in results):
             self.status = "failed"
         elif all(r.pass_fail == "pass" for r in results):
             self.status = "completed"
             self.completed_at = timezone.now()
         else:
-            # Mixed or incomplete results (should not happen with unique_together, but keep as safety)
+            # Mixed or incomplete results (should not happen with unique_together)
             self.status = "pending"
 
         self.save(update_fields=["status", "completed_at"])

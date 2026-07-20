@@ -61,7 +61,7 @@ def paginated_response(data, count, page, pages, status_code=status.HTTP_200_OK)
     )
 
 
-def error_response(errors, status_code=status.HTTP_400_BAD_REQUEST):
+def error_response(errors, status_code=status.HTTP_400_BAD_REQUEST, **kwargs):
     """
     Manual error response for cases where you need to return
     an error directly from a view without raising an exception.
@@ -72,6 +72,10 @@ def error_response(errors, status_code=status.HTTP_400_BAD_REQUEST):
             status.HTTP_400_BAD_REQUEST
         )
     """
+    status_override = kwargs.get("status")
+    if status_override is not None:
+        status_code = status_override
+
     return Response(
         {
             "success": False,

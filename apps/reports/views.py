@@ -9,6 +9,7 @@ from core.responses import success_response
 
 
 class DashboardView(APIView):
+    serializer_class = None
     permission_classes = [IsAnalystOrAbove]
 
     def get(self, request):

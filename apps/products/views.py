@@ -16,6 +16,7 @@ from services.audit_service import AuditService
 
 
 class MonographListCreateView(APIView):
+    serializer_class = MonographSerializer
     permission_classes = [IsAnalystOrAbove]
 
     def get(self, request):
@@ -42,6 +43,7 @@ class MonographListCreateView(APIView):
 
 
 class MonographDetailView(APIView):
+    serializer_class = MonographSerializer
     permission_classes = [IsAnalystOrAbove]
 
     def get_object(self, pk):
@@ -82,6 +84,7 @@ class MonographDetailView(APIView):
 
 
 class MonographApproveView(APIView):
+    serializer_class = MonographSerializer
     permission_classes = [IsQAManager]
 
     def post(self, request, pk):
@@ -115,6 +118,7 @@ class MonographApproveView(APIView):
 
 
 class MonographTestListCreateView(APIView):
+    serializer_class = MonographTestSerializer
     permission_classes = [IsAnalystOrAbove]
 
     def get_monograph(self, pk):
@@ -156,6 +160,7 @@ class MonographTestListCreateView(APIView):
 
 
 class ProductListCreateView(APIView):
+    serializer_class = ProductSerializer
     # Allow all authenticated users (analyst, supervisor, qa_manager, admin)
     permission_classes = [IsAnalystOrAbove]
 
@@ -184,6 +189,7 @@ class ProductListCreateView(APIView):
 
 
 class ProductDetailView(APIView):
+    serializer_class = ProductSerializer
     permission_classes = [IsAnalystOrAbove]
 
     def get_object(self, pk):

@@ -9,6 +9,8 @@ from services.audit_service import AuditService
 
 
 class BatchListCreateView(APIView):
+    serializer_class = BatchSerializer
+
     """
     GET  /api/v1/batches/  — list all batches
     POST /api/v1/batches/  — create new batch + auto-generate schedule
@@ -42,6 +44,8 @@ class BatchListCreateView(APIView):
 
 
 class BatchDetailView(APIView):
+    serializer_class = BatchSerializer
+
     """
     GET   /api/v1/batches/<id>/  — batch detail with test points
     PATCH /api/v1/batches/<id>/  — update batch status

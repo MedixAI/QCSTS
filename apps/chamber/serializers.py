@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from apps.chamber.models import SamplePull, LocationHistory
 from apps.batches.models import Batch
+from apps.schedule.models import TestPoint
 from core.exceptions import InsufficientQuantity
 
 
@@ -41,12 +42,19 @@ class SamplePullSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             batch = validated_data["batch"]
             qty_pulled = validated_data["qty_pulled"]
+            test_point = validated_data.get("test_point")
 
             # Reduce qty_remaining on the batch
             batch.qty_remaining -= qty_pulled
             batch.save(update_fields=["qty_remaining", "updated_at"])
 
             pull = SamplePull.objects.create(**validated_data)
+
+            # --- NEW LOGIC: Update TestPoint status to "pulled" ---
+            if test_point and test_point.status not in ["completed", "failed", "pulled"]:
+                test_point.status = "pulled"
+                test_point.save(update_fields=["status"])
+
             return pull
 
 

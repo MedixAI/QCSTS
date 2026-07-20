@@ -635,11 +635,13 @@ Every response follows this shape:
 ## Quick Start for Frontend Developer
 
 1. Start backend: `docker compose -f docker/docker-compose.yml up -d`
-2. API available at: `http://localhost/api/v1/`
-3. Swagger docs: `http://localhost/api/docs/`
-4. Login with: `admin@qcsts.com` / `admin`
-5. Use the access token in all subsequent requests:
-   ```
+2. migrate the data base : `docker compose exec web python manage.py migrate`
+3. create the admin user (frist user):`docker compose exec web python manage.py createsuperuser` # Use email: admin@qcsts.com, password: (your choice)
+4. API available at: `http://localhost/api/v1/`
+5. Swagger docs: `http://localhost/api/docs/`
+6. Login with: `admin@qcsts.com` / `admin`
+7. Use the access token in all subsequent requests:
+   ``` 
    Authorization: Bearer <access_token>
    ```
-6. When token expires (401), POST to `/auth/token/refresh/` with the refresh token
+8. When token expires (401), POST to `/auth/token/refresh/` with the refresh token
