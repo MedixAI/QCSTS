@@ -51,11 +51,7 @@ class TestResultSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        from django.db import transaction
-        from django.utils import timezone
-
         monograph_test = validated_data["monograph_test"]
-        test_point = validated_data["test_point"]
 
         validated_data["specification_snapshot"] = monograph_test.specification
         validated_data["pass_fail"] = OutcomeEvaluator.evaluate(
@@ -63,22 +59,8 @@ class TestResultSerializer(serializers.ModelSerializer):
             monograph_test.specification,
         )
 
-        with transaction.atomic():
-            result = TestResult.objects.create(**validated_data)
-            # Update test point status
-            test_point.update_status()
-
-            # After updating test point, update batch status
-            batch = test_point.batch
-            all_tps = batch.test_points.all()
-            completed_count = all_tps.filter(status="completed").count()
-            failed_count = all_tps.filter(status="failed").count()
-
-            if completed_count == all_tps.count():
-                batch.status = "complete"
-                batch.save(update_fields=["status", "updated_at"])
-            elif failed_count > 0:
-                batch.status = "failed"
-                batch.save(update_fields=["status", "updated_at"])
-
+        # Save the result. The post_save signal in signals.py will
+        # call test_point.update_status() and cascade to the batch.
+        # Do NOT call update_status() here — that causes a double update.
+        result = TestResult.objects.create(**validated_data)
         return result

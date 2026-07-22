@@ -2,30 +2,59 @@ from rest_framework.views import APIView
 from rest_framework import status
 from django.db import transaction
 
+from apps.batches.models import Batch
+from apps.batches.serializers import BatchSerializer
 from apps.chamber.models import SamplePull, LocationHistory
 from apps.chamber.serializers import (
     SamplePullSerializer,
     LocationHistorySerializer,
     ChangeBatchLocationSerializer,
 )
-from core.permissions import IsAnalystOrAbove, IsReviewerOrAbove   # use reviewer
-from core.responses import success_response, error_response
+from core.permissions import IsAnalystOrAbove
+from core.responses import success_response
 from services.audit_service import AuditService
 
 
 class ChamberInventoryView(APIView):
+    serializer_class = BatchSerializer
     permission_classes = [IsAnalystOrAbove]
-    # ... unchanged ...
+
+    def get(self, request):
+        queryset = Batch.objects.select_related("product", "product__monograph").all()
+
+        study_type = request.query_params.get("study_type")
+        if study_type:
+            queryset = queryset.filter(study_type=study_type)
+
+        return success_response(data=BatchSerializer(queryset, many=True).data)
 
 
 class SamplePullListCreateView(APIView):
+    serializer_class = SamplePullSerializer
     permission_classes = [IsAnalystOrAbove]
-    # ... unchanged ...
+
+    def get(self, request):
+        queryset = SamplePull.objects.select_related("batch", "pulled_by", "test_point").all()
+
+        batch_id = request.query_params.get("batch")
+        if batch_id:
+            queryset = queryset.filter(batch__id=batch_id)
+
+        return success_response(data=SamplePullSerializer(queryset, many=True).data)
+
+    def post(self, request):
+        serializer = SamplePullSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        sample_pull = serializer.save(pulled_by=request.user, created_by=request.user)
+        return success_response(
+            data=SamplePullSerializer(sample_pull).data,
+            status_code=status.HTTP_201_CREATED,
+        )
 
 
 class ChangeBatchLocationView(APIView):
-    # CHANGE: from IsAnalystOrAbove to IsReviewerOrAbove
-    permission_classes = [IsReviewerOrAbove]
+    serializer_class = ChangeBatchLocationSerializer
+    permission_classes = [IsAnalystOrAbove]
 
     def post(self, request):
         serializer = ChangeBatchLocationSerializer(data=request.data)
@@ -73,6 +102,8 @@ class ChangeBatchLocationView(APIView):
 
 
 class LocationHistoryView(APIView):
+    serializer_class = LocationHistorySerializer
+
     """
     GET /api/v1/chamber/locations/<batch_id>/
     Returns the full location history for a batch.

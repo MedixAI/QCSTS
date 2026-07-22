@@ -8,6 +8,8 @@ from core.responses import success_response
 
 
 class AuditLogListView(APIView):
+    serializer_class = AuditLogSerializer
+
     """
     GET /api/v1/audit/
     Returns the full audit trail. QA Manager and Admin only.
@@ -47,6 +49,8 @@ class AuditLogListView(APIView):
 
 
 class AuditLogDetailView(APIView):
+    serializer_class = AuditLogSerializer
+
     """
     GET /api/v1/audit/<id>/
     Returns a single audit log entry. QA Manager and Admin only.

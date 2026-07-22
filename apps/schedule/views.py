@@ -9,6 +9,8 @@ from core.responses import success_response, error_response
 
 
 class TestPointListView(APIView):
+    serializer_class = TestPointSerializer
+
     """
     GET /api/v1/test-points/
     List test points with optional filters.
@@ -43,6 +45,8 @@ class TestPointListView(APIView):
 
 
 class TestPointDetailView(APIView):
+    serializer_class = TestPointSerializer
+
     """
     GET /api/v1/test-points/<id>/
     Get a single test point with full details.
